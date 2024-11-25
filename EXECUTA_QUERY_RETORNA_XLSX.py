@@ -2,7 +2,7 @@
 22/11/2024
 @PLima
 
-APP PARA EXECUTAR QUERY DENTRO DO BANCO DE DADOS TASY DO HSF
+APP LEONARDO DI CAPRIO - PARA EXECUTAR QUERY DENTRO DO BANCO DE DADOS TASY DO HSF
 
 passos:
 
@@ -37,26 +37,13 @@ extraido em: C:\oracle
 
 ficando com o endereço: 'C:\oracle\instantclient_23_6'
 extração do arquivo heim: C:\oracle\instantclient_23_6
-
-
-
-
 """
 
 import os
-import platform
 import oracledb
 import pandas as pd
 
 #apontamento para usar o Think Mod
-"""
-d = None                               # On Linux, no directory should be passed
-if platform.system() == "Darwin":      # macOS
-  d = os.environ.get("HOME")+("/Downloads/instantclient_23_3")
-elif platform.system() == "Windows":   # Windows
-  d = r'C:\oracle\instantclient_23_6'
-oracledb.init_oracle_client(lib_dir=d)
-"""
 def encontrar_diretorio_instantclient(nome_pasta="instantclient-basiclite-windows.x64-23.6.0.24.10\instantclient_23_6"):
   """
   Localiza o diretório do Instant Client dentro da pasta raiz do aplicativo.
@@ -67,6 +54,7 @@ def encontrar_diretorio_instantclient(nome_pasta="instantclient-basiclite-window
   Returns:
     Caminho completo para a pasta do Instant Client, ou None se não encontrada.
   """
+  print(f'encontrar_diretorio_instantclient\n')
   # Obtém o diretório do script atual
   diretorio_atual = os.path.dirname(os.path.abspath(__file__))
 
@@ -81,17 +69,14 @@ def encontrar_diretorio_instantclient(nome_pasta="instantclient-basiclite-window
     return None
 
 
-
-
-
 #============================================================ EXECUCAO ============================================================
 if __name__ == "__main__":
     print("\n============================== inicio ========================\n")
 
     try:
         un = 'PIETRO'
-        cs = '192.168.5.9:1521/TASYHOM'
-        
+        cs = '192.168.5.9:1521/TASYPRD'
+
         # Chamar a função para obter o caminho do Instant Client
         caminho_instantclient = encontrar_diretorio_instantclient()
 
@@ -103,9 +88,13 @@ if __name__ == "__main__":
         else:
             print("Erro ao localizar o Instant Client. Verifique o nome da pasta e o caminho.")
         
-
-        with oracledb.connect(user=un, password=pw, dsn=cs) as connection:
+        connection = oracledb.connect( user="TASY", password="aloisk", dsn="192.168.5.9:1521/TASYPRD")
+        
+        with connection:
             print(f'with oracledb.connect(user=un, password=pw, dsn=cs) as connection\n')
+            
+            print(f'\nconnection.current_schema: {connection.current_schema}')
+            
             with connection.cursor() as cursor:
                 print(f'with connection.cursor() as cursor:\n')
                 sql = """ 
@@ -114,11 +103,11 @@ if __name__ == "__main__":
                             NR_ATENDIMENTO,
                             NM_PACIENTE
                         FROM ATENDIMENTO_PACIENTE_V
-                        ORDER BY DT_ENTRADA DESC
+                        ORDER BY NR_ATENDIMENTO DESC
                         FETCH FIRST 10 ROWS ONLY
                     """
                 #Executando a query:
-                print(f'cursor.execute(sql)\n{sql}')
+                #print(f'cursor.execute(sql)\n{sql}')
                 cursor.execute(sql)
                 
                 # Imprimir os resultados da consulta para verificar
@@ -136,13 +125,15 @@ if __name__ == "__main__":
                 print(f'df = pd.DataFrame(results, columns=[desc[0] for desc in cursor.description])')
                 df = pd.DataFrame(results, columns=[desc[0] for desc in cursor.description])
                 
-
-        print('\n\n')
-        
-        # Visualizar os primeiros 5 registros
-        print(f'data_frame:\n{df.head()}')
+                # Visualizar os primeiros 5 registros
+                print(f'data_frame:\n{df.head()}')
+                
+                # Salvar o DataFrame em um arquivo Excel
+                print(f"df.to_excel('resultados.xlsx', index=False)")
+                df.to_excel('resultados.xlsx', index=False)
+                print("DataFrame salvo com sucesso!")
 
     except Exception as erro:
         print(f"Erro Inexperado:\n{erro}")
     
-    print("\n============================== fim ========================\n")
+    print("\n============================== fim ========================\n\n")
